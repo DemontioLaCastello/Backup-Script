@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# Function to display help information
+display_help() {
+    echo "Usage: $0 <directory> <compression> <output_file>"
+    echo "Options:"
+    echo "  <directory>: Directory to backup"
+    echo "  <compression>: Compression algorithm (none, gzip, bzip2, etc)"
+    echo "  <output_file>: Output file name"
+    exit 0
+}
+
+# Function to backup the specified directory
+backup_directory() {
+    directory=$1
+    tar -cf - "$directory"
+}
+
+# Function to handle compression based on the given algorithm
+compress_backup() {
+    compression=$1
+    case $compression in
+        none) cat ;;
+        gzip) gzip ;;
+        bzip2) bzip2 ;;
+        *) echo "Invalid compression option"; exit 1 ;;
+    esac
+}
+
+# Function to encrypt the backup using openssl
+encrypt_backup() {
+    output_file=$1
+    openssl enc -aes-256-cbc -out "$output_file"
+}
+
+# Function to redirect output to error.log
+redirect_output() {
+    exec 1>>error.log
+    exec 2>&1
+}
+
+# Main function to orchestrate the entire backup process
+main() {
+    if [ "$#" -ne 3 ]; then
+        display_help
+    fi
+
+    directory=$1
+    compression=$2
+    output_file=$3
+
+    # Redirect output to error.log
+    redirect_output
+
+    # Backup, compress, and encrypt in sequence
+    backup_directory "$directory" | compress_backup "$compression" | encrypt_backup "$output_file"
+
+    echo "Backup completed successfully. Encrypted file: $output_file"
+}
+
+# Call the main function with command line arguments
+main "$@"
