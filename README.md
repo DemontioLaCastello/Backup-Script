@@ -1,2 +1,3 @@
 # Backup-Script
-My code for backing up folders to an archive
+
+My code is in the 'Script' file
